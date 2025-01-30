@@ -1,0 +1,9 @@
+services:
+  postgres:
+    image: postgres:latest
+    container_name: product-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: postgres
