@@ -1,5 +1,5 @@
 const express = require('express');
-const ProductController = require('./productController');
+const ProductController = require('../Controller/productController');
 const { 
   validateProductFields, 
   validateProductId, 
