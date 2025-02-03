@@ -1,4 +1,5 @@
 const winston = require('winston');
+require('winston-daily-rotate-file');
 const { format } = winston;
 const path = require('path');
 
