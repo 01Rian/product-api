@@ -37,12 +37,42 @@ const ProductRepository = {
     }
   },
 
-  findAllProducts: async () => {
+  findAllProducts: async ({ page = 1, limit = 10, search, minPrice, maxPrice }) => {
     const start = process.hrtime();
     try {
-      logger.logWithContext('info', 'Iniciando busca de todos os produtos');
+      logger.logWithContext('info', 'Iniciando busca de produtos com filtros', {
+        filters: { page, limit, search, minPrice, maxPrice }
+      });
       
-      const results = await db.any('SELECT * FROM products ORDER BY id ASC');
+      let query = 'SELECT * FROM products WHERE 1=1';
+      const params = [];
+      let countQuery = 'SELECT COUNT(*) FROM products WHERE 1=1';
+
+      if (search) {
+        query += ' AND (LOWER(name) LIKE LOWER($1) OR LOWER(description) LIKE LOWER($1))';
+        countQuery += ' AND (LOWER(name) LIKE LOWER($1) OR LOWER(description) LIKE LOWER($1))';
+        params.push(`%${search}%`);
+      }
+
+      if (minPrice !== undefined) {
+        query += ` AND price >= $${params.length + 1}`;
+        countQuery += ` AND price >= $${params.length + 1}`;
+        params.push(minPrice);
+      }
+
+      if (maxPrice !== undefined) {
+        query += ` AND price <= $${params.length + 1}`;
+        countQuery += ` AND price <= $${params.length + 1}`;
+        params.push(maxPrice);
+      }
+
+      const offset = (page - 1) * limit;
+      query += ` ORDER BY id ASC LIMIT ${limit} OFFSET ${offset}`;
+
+      const [totalCount, results] = await Promise.all([
+        db.one(countQuery, params),
+        db.any(query, params)
+      ]);
       
       const [seconds, nanoseconds] = process.hrtime(start);
       const duration = seconds * 1000 + nanoseconds / 1000000;
@@ -50,10 +80,19 @@ const ProductRepository = {
       logger.logWithContext('info', 'Produtos recuperados com sucesso', {
         operation: 'findAllProducts',
         count: results.length,
+        total: parseInt(totalCount.count),
+        page,
+        limit,
         duration: `${duration.toFixed(2)}ms`
       });
 
-      return results;
+      return {
+        products: results,
+        total: parseInt(totalCount.count),
+        page,
+        limit,
+        totalPages: Math.ceil(parseInt(totalCount.count) / limit)
+      };
     } catch (error) {
       logger.logWithContext('error', 'Erro ao buscar todos os produtos', {
         operation: 'findAllProducts',
