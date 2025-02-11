@@ -12,32 +12,26 @@ const config = {
   password: process.env.DB_PASSWORD,
 };
 
-logger.logWithContext('info', 'Tentando conectar ao banco de dados', {
-  host: config.host,
-  port: config.port,
-  database: config.database,
-  user: config.user
-});
-
 const db = pgp(config);
 
-// Teste inicial de conexão
-db.connect()
-  .then(obj => {
+async function init() {
+  try {
+    const connection = await db.connect();
     logger.logWithContext('info', 'Conexão com o banco de dados estabelecida com sucesso', {
       host: config.host,
       database: config.database
     });
-    obj.done(); // Libera a conexão
-  })
-  .catch(error => {
+    connection.done(); // Libera a conexão
+  } catch (error) {
     logger.logWithContext('error', 'Erro ao conectar ao banco de dados', {
       error: error.message,
       stack: error.stack,
       host: config.host,
       database: config.database
     });
-  });
+    throw error;
+  }
+}
 
 async function initializeDatabase() {
   try {
@@ -60,7 +54,9 @@ async function initializeDatabase() {
   }
 }
 
-// Inicializa o banco de dados quando o arquivo é carregado
-initializeDatabase();
+(async function main() {
+  await init();
+  await initializeDatabase();
+})();
 
 module.exports = db;
