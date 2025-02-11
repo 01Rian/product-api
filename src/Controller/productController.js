@@ -5,7 +5,12 @@ class ProductController {
   createProduct = async (req, res) => {
     try {
       logger.logWithContext('info', 'Iniciando criação de produto', {
-        productData: req.body,
+        productData: {
+          ...req.body,
+          password: undefined,
+          token: undefined,
+          apiKey: undefined
+        },
         userId: req.user?.id 
       });
 
@@ -30,17 +35,39 @@ class ProductController {
 
   getAllProducts = async (req, res) => {
     try {
+      const { page = 1, limit = 10, search, minPrice, maxPrice } = req.query;
+
       logger.logWithContext('info', 'Iniciando busca de todos os produtos', {
-        userId: req.user?.id
+        userId: req.user?.id,
+        filters: { page, limit, search, minPrice, maxPrice }
       });
 
-      const allProduct = await ProductRepository.findAllProducts();
+      const filters = {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        search,
+        minPrice: minPrice ? parseFloat(minPrice) : undefined,
+        maxPrice: maxPrice ? parseFloat(maxPrice) : undefined
+      };
+
+      const result = await ProductRepository.findAllProducts(filters);
 
       logger.logWithContext('info', 'Produtos recuperados com sucesso', {
-        count: allProduct.length
+        count: result.products.length,
+        total: result.total,
+        page: result.page,
+        totalPages: result.totalPages
       });
 
-      res.status(200).json(allProduct);
+      res.status(200).json({
+        products: result.products,
+        pagination: {
+          total: result.total,
+          page: result.page,
+          limit: result.limit,
+          totalPages: result.totalPages
+        }
+      });
     } catch (error) {
       logger.logWithContext('error', 'Erro ao buscar produtos', {
         error: error.message,
