@@ -1,6 +1,13 @@
 const { format } = require('date-fns');
 const logger = require('../Config/logger');
 
+const validateProductName = (name) => {
+  if (!name || name.trim().length === 0) return false;
+  if (name.length > 255) return false;
+  if (/<[^>]*>/g.test(name)) return false; // XSS check
+  return true;
+};
+
 const validateProductFields = (req, res, next) => {
   const { name, price, quantity } = req.body;
   logger.logWithContext('info', 'Validando campos do produto', {
@@ -8,11 +15,11 @@ const validateProductFields = (req, res, next) => {
     body: req.body
   });
 
-  if (!name || name.trim().length === 0) {
-    logger.logWithContext('warn', 'Validação falhou: nome do produto ausente', {
-      requestId: req.id
-    });
-    return res.status(400).json({ message: 'Nome do produto é obrigatório' });
+  if (!validateProductName(name)) {
+   logger.logWithContext('warn', 'Validação falhou: nome do produto inválido', {
+     requestId: req.id
+   });
+   return res.status(400).json({ message: 'Nome do produto é obrigatório' });
   }
 
   if (!price || isNaN(price) || price <= 0) {
@@ -150,6 +157,27 @@ const methodNotAllowed = (req, res) => {
   });
 };
 
+const validateUpdateFields = (req, res, next) => {
+  // Validar payload vazio
+  if (Object.keys(req.body).length === 0) {
+    return res.status(400).json({ message: 'Nenhum dado fornecido para atualização' });
+  }
+
+  // Validar campos protegidos
+  const protectedFields = ['id', 'created_at'];
+  const hasProtectedFields = protectedFields.some(field => field in req.body);
+  if (hasProtectedFields) {
+    return res.status(400).json({ message: 'Não é permitido atualizar campos protegidos' });
+  }
+
+  // Validar nome se estiver presente
+  if (req.body.name && !validateProductName(req.body.name)) {
+    return res.status(400).json({ message: 'Nome do produto inválido' });
+  }
+
+  next();
+};
+
 const handleInvalidRoute = (req, res) => {
   logger.logWithContext('warn', 'Rota inválida acessada', {
     requestId: req.id,
@@ -164,6 +192,7 @@ const handleInvalidRoute = (req, res) => {
 module.exports = {
   validateProductFields,
   validateProductId,
+  validateUpdateFields,
   sanitizeProductData,
   formatDates,
   formatDateResponse,
