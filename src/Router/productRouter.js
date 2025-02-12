@@ -7,7 +7,8 @@ const {
   formatDates,
   formatDateResponse,
   methodNotAllowed,
-  handleInvalidRoute
+  handleInvalidRoute,
+  searchParamsValidation
 } = require('../Middleware/productValidationMiddleware');
 const router = express.Router();
 
@@ -15,11 +16,11 @@ const router = express.Router();
 router.use(formatDateResponse);
 
 // Rotas principais
-router.post('/', validateProductFields, sanitizeProductData, formatDates, ProductController.createProduct);
-router.get('/', ProductController.getAllProducts);
-router.get('/:id', validateProductId, ProductController.getProductById);
-router.delete('/:id', validateProductId, ProductController.deleteProduct);
-router.put('/:id', validateProductId, validateProductFields, sanitizeProductData, formatDates, ProductController.updateProduct);
+router.post('/', searchParamsValidation, validateProductFields, sanitizeProductData, formatDates, ProductController.createProduct);
+router.get('/', searchParamsValidation, ProductController.getAllProducts);
+router.get('/:id', searchParamsValidation, validateProductId, ProductController.getProductById);
+router.delete('/:id', searchParamsValidation, validateProductId, ProductController.deleteProduct);
+router.put('/:id', searchParamsValidation, validateProductId, validateProductFields, sanitizeProductData, formatDates, ProductController.updateProduct);
 
 // Tratamento de métodos não permitidos
 router.all('/', (req, res, next) => {
