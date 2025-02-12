@@ -42,12 +42,17 @@ class ProductController {
         filters: { page, limit, search, minPrice, maxPrice }
       });
 
+      const parsedPage = parseInt(page);
+      const parsedLimit = parseInt(limit);
+      const parsedMinPrice = minPrice ? parseFloat(minPrice) : undefined;
+      const parsedMaxPrice = maxPrice ? parseFloat(maxPrice) : undefined;
+
       const filters = {
-        page: parseInt(page),
-        limit: parseInt(limit),
+        page: isNaN(parsedPage) || parsedPage < 1 ? 1 : parsedPage,
+        limit: isNaN(parsedLimit) || parsedLimit < 1 ? 10 : Math.min(parsedLimit, 10),
         search,
-        minPrice: minPrice ? parseFloat(minPrice) : undefined,
-        maxPrice: maxPrice ? parseFloat(maxPrice) : undefined
+        minPrice: isNaN(parsedMinPrice) ? undefined : parsedMinPrice,
+        maxPrice: isNaN(parsedMaxPrice) ? undefined : parsedMaxPrice
       };
 
       const result = await ProductRepository.findAllProducts(filters);
