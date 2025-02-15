@@ -11,22 +11,22 @@ const logFormat = format.combine(
 );
 
 const logger = winston.createLogger({
-  level: 'info',
+  level: process.env.LOG_LEVEL || 'info',
   format: logFormat,
   defaultMeta: { service: 'product-api' },
   transports: [
     // Logs de erro serão salvos em arquivo separado
     new winston.transports.DailyRotateFile({
-      filename: path.join('logs', 'error-%DATE%.log'),
+      filename: path.join(process.env.LOG_DIR || 'logs', 'error-%DATE%.log'),
       datePattern: 'DD-MM-YYYY',
       level: 'error',
-      maxFiles: '14d'
+      maxFiles: process.env.LOG_MAX_FILES || '14d'
     }),
     // Todos os logs serão salvos neste arquivo
     new winston.transports.DailyRotateFile({
-      filename: path.join('logs', 'combined-%DATE%.log'),
+      filename: path.join(process.env.LOG_DIR || 'logs', 'combined-%DATE%.log'),
       datePattern: 'DD-MM-YYYY',
-      maxFiles: '14d'
+      maxFiles: process.env.LOG_MAX_FILES || '14d'
     })
   ]
 });
