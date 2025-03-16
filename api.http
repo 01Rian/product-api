@@ -1,0 +1,101 @@
+###
+# API de Produtos - Arquivo de Testes
+# Você pode executar esses testes usando a extensão REST Client no VSCode
+# ou qualquer outra ferramenta que suporte o formato HTTP request
+
+@baseUrl = http://localhost:3000/api/products
+@contentType = application/json
+
+### Obter todos os produtos
+GET {{baseUrl}}
+Content-Type: {{contentType}}
+
+### Obter produto por ID
+GET {{baseUrl}}/1
+Content-Type: {{contentType}}
+
+### Criar um novo produto
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+
+{
+  "name": "Smartphone XYZ",
+  "price": 1499.99,
+  "description": "Smartphone de última geração com câmera de alta resolução",
+  "image": "smartphone-xyz.jpg",
+  "category": "Eletrônicos",
+  "quantity": 50
+}
+
+### Atualizar um produto existente
+PUT {{baseUrl}}/1
+Content-Type: {{contentType}}
+
+{
+  "name": "Smartphone XYZ Plus",
+  "price": 1699.99,
+  "description": "Versão atualizada do Smartphone XYZ com mais memória",
+  "image": "smartphone-xyz-plus.jpg",
+  "category": "Eletrônicos",
+  "quantity": 30
+}
+
+### Excluir um produto
+DELETE {{baseUrl}}/1
+Content-Type: {{contentType}}
+
+### Cenários de Erro
+
+### Tentativa de obter um produto com ID inválido
+GET {{baseUrl}}/invalid
+Content-Type: {{contentType}}
+
+### Tentativa de criar um produto com dados inválidos (sem nome)
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+
+{
+  "price": 1499.99,
+  "description": "Produto sem nome",
+  "quantity": 10
+}
+
+### Tentativa de criar um produto com dados inválidos (preço negativo)
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+
+{
+  "name": "Produto com preço negativo",
+  "price": -50.00,
+  "quantity": 10
+}
+
+### Tentativa de atualizar um produto inexistente
+PUT {{baseUrl}}/999
+Content-Type: {{contentType}}
+
+{
+  "name": "Produto inexistente",
+  "price": 100.00,
+  "quantity": 5
+}
+
+### Pesquisa com parâmetros de busca
+GET {{baseUrl}}?category=Eletrônicos
+Content-Type: {{contentType}}
+
+### Pesquisa com múltiplos parâmetros
+GET {{baseUrl}}?category=Eletrônicos&minPrice=1000&maxPrice=2000
+Content-Type: {{contentType}}
+
+### Método não permitido
+PATCH {{baseUrl}}/1
+Content-Type: {{contentType}}
+
+{
+  "quantity": 25
+}
+
+### Rota inválida
+GET {{baseUrl}}/invalid/path
+Content-Type: {{contentType}}
