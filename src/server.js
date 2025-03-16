@@ -86,11 +86,15 @@ const gracefulShutdown = () => {
 process.on('SIGTERM', gracefulShutdown);
 process.on('SIGINT', gracefulShutdown);
 
-// Inicialização do servidor
-const server = app.listen(port, () => {
-  logger.logWithContext('info', 'Servidor iniciado', {
-    port,
-    environment: process.env.NODE_ENV || 'development',
-    nodeVersion: process.version
+// Inicialização do servidor apenas quando executado diretamente
+if (require.main === module) {
+  const server = app.listen(port, () => {
+    logger.logWithContext('info', 'Servidor iniciado', {
+      port,
+      environment: process.env.NODE_ENV || 'development',
+      nodeVersion: process.version
+    });
   });
-});
+}
+
+module.exports = app;
