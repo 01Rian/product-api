@@ -9,7 +9,7 @@ const {
   methodNotAllowed,
   handleInvalidRoute,
   searchParamsValidation
-} = require('../Middleware/productValidationMiddleware');
+} = require('../Middleware/index');
 const router = express.Router();
 
 // Aplica o middleware de formatação de datas em todas as rotas
